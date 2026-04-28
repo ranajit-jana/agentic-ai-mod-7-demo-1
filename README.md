@@ -170,6 +170,52 @@ The dispatch loop needs no other changes.
 - [Streamlit](https://streamlit.io/) — chat UI
 - [uv](https://docs.astral.sh/uv/) — Python package and project manager
 
+## Context Management in Multi-Agent
+
+Each layer of the system manages context differently:
+
+### Supervisor — persistent memory
+The Supervisor holds `self.history`, a list that **grows with every turn** and is never reset.
+
+```
+Turn 1:  history = [user, assistant]
+Turn 2:  history = [user, assistant, user, assistant]
+Turn 3:  history = [user, assistant, user, assistant, user, assistant]
+```
+
+Every call to `client.messages.create()` passes the full history, so Claude always has the complete conversation context. This is how it remembers earlier messages like a name or destination mentioned three turns ago.
+
+### Sub-agents — stateless, single task
+`TravelAgent` and `HotelAgent` have **no memory**. Each time the Supervisor calls `agent.run(task)`, the sub-agent starts fresh:
+
+```python
+messages = [{"role": "user", "content": task}]  # always starts empty
+```
+
+The Supervisor compensates by writing a **self-contained task description** before delegating, bundling all relevant details (destination, dates, names) into one string. The sub-agent never sees the original conversation.
+
+### What flows where
+
+```
+Full conversation history
+        │
+        ▼
+  SupervisorAgent  ──── writes task summary ────► TravelAgent
+  (remembers all)                                  (stateless)
+        │
+        │        ◄──── returns result text ────────────┘
+        │
+        ▼
+  Appends result to history → next Claude call has full context
+```
+
+### Why this design
+- Sub-agents stay simple and focused — they only need one task at a time
+- The Supervisor controls what context sub-agents receive — no risk of leaking unrelated conversation details
+- Conversation memory is centralised in one place, not scattered across agents
+
+---
+
 ## Anthropic SDK Features Used
 
 | Feature | Where | What it does |
