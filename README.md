@@ -230,3 +230,51 @@ Full conversation history
 | `type: "tool_result"` | All agents | Sends tool output back to Claude so it can continue |
 | `cache_control: ephemeral` | Supervisor | Caches the system prompt to reduce latency and cost |
 | Multi-turn `messages` history | Supervisor | Passes the full conversation so Claude has context across turns |
+
+---
+
+## Why Anthropic SDK over Others
+
+### 1. Native access to Claude-only features
+
+Other SDKs (OpenAI, LangChain) cannot give you these — they are Anthropic-exclusive:
+
+| Feature | What it does |
+|---------|--------------|
+| **Prompt caching** (`cache_control`) | Cache system prompts to cut latency and cost by up to 90% |
+| **Extended thinking** | Claude reasons step by step before answering — better for complex tasks |
+| **Citations** | Claude references exactly which part of a document it used |
+| **Computer use** | Claude can control a browser/desktop like a human |
+
+### 2. No abstraction layer
+
+LangChain and similar frameworks wrap the API in many layers. With the Anthropic SDK you talk **directly** to the model — no hidden prompts, no magic, no debugging someone else's abstraction.
+
+```python
+# Anthropic SDK — you see exactly what goes to Claude
+client.messages.create(model=..., system=..., tools=..., messages=...)
+
+# LangChain — many layers between you and the model
+chain = LLMChain(llm=ChatAnthropic(), prompt=prompt_template)
+```
+
+### 3. Tool use is first-class
+
+The tool use / function calling design in the Anthropic SDK is built specifically for how Claude reasons. Claude natively understands `tool_use` and `tool_result` message types — the loop in this project is exactly how Anthropic designed it.
+
+### 4. Predictable, typed responses
+
+The SDK returns typed Python objects (`response.content`, `block.type`, `block.input`, `response.stop_reason`) — not raw JSON you have to parse yourself.
+
+### 5. Reliability and support
+
+Since it is the **official SDK from the model maker**, it is always updated first when new models or features ship. Third-party wrappers always lag behind.
+
+### When you might choose something else
+
+| Situation | Better choice |
+|-----------|---------------|
+| Need to switch between GPT, Claude, Gemini | LiteLLM or LangChain |
+| Rapid prototyping with pre-built chains | LangChain |
+| Need vector stores + retrieval built in | LlamaIndex |
+| Production app, one model, full control | **Anthropic SDK** — this project |
