@@ -167,6 +167,20 @@ The dispatch loop needs no other changes.
 
 ## Tech Stack
 
-- [Anthropic Claude SDK](https://docs.anthropic.com/) — `anthropic` Python SDK
 - [Streamlit](https://streamlit.io/) — chat UI
 - [uv](https://docs.astral.sh/uv/) — Python package and project manager
+
+## Anthropic SDK Features Used
+
+| Feature | Where | What it does |
+|---------|-------|--------------|
+| `anthropic.Anthropic()` | All agents | Initialises the SDK client to talk to the Claude API |
+| `client.messages.create()` | All agents | Sends a message to Claude and gets a response back |
+| `tools=` parameter | All agents | Defines the list of tools Claude is allowed to call |
+| `stop_reason: "tool_use"` | All agents | Claude signals it wants to call a tool before answering |
+| `stop_reason: "end_turn"` | All agents | Claude signals it has a final answer ready for the user |
+| `block.type == "tool_use"` | All agents | Detects which response blocks are tool call requests |
+| `block.input` | All agents | Reads the arguments Claude chose for the tool call |
+| `type: "tool_result"` | All agents | Sends tool output back to Claude so it can continue |
+| `cache_control: ephemeral` | Supervisor | Caches the system prompt to reduce latency and cost |
+| Multi-turn `messages` history | Supervisor | Passes the full conversation so Claude has context across turns |
