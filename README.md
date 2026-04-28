@@ -1,4 +1,4 @@
-# Travel Concierge — Multi-Agent Chatbot
+# Travel Concierge — Multi-Agent Chatbot | Anthropic SDK
 
 A multi-agent travel chatbot built with the **Anthropic Claude SDK** and **Streamlit**.  
 Three collaborative AI agents handle destination advice, flight booking, and hotel booking — all driven by a Supervisor that routes requests intelligently with no hardcoded logic.
